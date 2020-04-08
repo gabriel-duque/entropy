@@ -4,7 +4,7 @@ entropy
 Introduction
 ------------
 
-entROPy is a Python3 library you can use to generate ROP chains. For a basic
+entropy is a Python3 library you can use to generate ROP chains. For a basic
 background on return oriented programming (ROP), you can read this light
 `explanation`_.
 
