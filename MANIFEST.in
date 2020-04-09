@@ -7,6 +7,9 @@ include AUTHORS
 # Include README
 include README.rst
 
+# Include our MANIFEST input
+include MANIFEST.in
+
 # Include documentation
 graft docs
 prune docs/docs-build
