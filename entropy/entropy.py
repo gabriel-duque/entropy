@@ -14,7 +14,7 @@ from typing import BinaryIO
 
 
 def main() -> None:
-    """ This is the function that gets called when `entropy` is run as an executable script and not imported as a lib.
+    """ This is the function that gets called when ``entropy`` is run as an executable script and not imported as a lib.
     """
     parser: argparse.ArgumentParser = argparse.ArgumentParser()
     parser.add_argument("elf")
