@@ -8,9 +8,9 @@
 """
 
 import argparse
-import io
 
-from typing import BinaryIO
+import entropy.elf
+import entropy.log
 
 
 def main() -> None:
@@ -19,8 +19,6 @@ def main() -> None:
     parser: argparse.ArgumentParser = argparse.ArgumentParser()
     parser.add_argument("elf")
     args: argparse.Namespace = parser.parse_args()
-    pf_x: int = (1 << 0)
 
-    with open(args.elf, "rb") as f:
-        byte_stream: BinaryIO = io.BytesIO(f.read())
-    print(byte_stream)
+    entropy.log.info(f"parsing file {args.elf}")
+    input_elf: entropy.elf.ELF = entropy.elf.ELF.from_file_name(args.elf)
