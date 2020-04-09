@@ -1,0 +1,12 @@
+# Include our license
+include LICENSE
+
+# Include our AUTHORS file
+include AUTHORS
+
+# Include README
+include README.rst
+
+# Include documentation
+graft docs
+global-exclude docs-build
