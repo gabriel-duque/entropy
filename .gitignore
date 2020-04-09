@@ -1,7 +1,40 @@
+# Python stuff
 venv
-__pycache__
+__pycache__/
 *.py[cod]
+*$py.class
+
+# Project specific
 misc
-doc-build
+docs-build
+
+# Mypy cache
 .mypy_cache
+
+# I use PyCharm
 .idea
+# *.iml
+# modules.xml
+# .idea/misc.xml
+# *.ipr
+
+# Distribution packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
