@@ -21,3 +21,19 @@ entropy's main module
 
 .. automodule:: entropy.entropy
    :members:
+
+
+
+Logging functions
+=================
+
+.. automodule:: entropy.log
+   :members:
+
+
+
+ELF file representation
+=======================
+
+.. automodule:: entropy.elf
+   :members:
