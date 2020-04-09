@@ -9,4 +9,5 @@ include README.rst
 
 # Include documentation
 graft docs
-global-exclude docs-build
+prune docs/docs-build
+global-exclude .mypy_cache
