@@ -13,10 +13,10 @@ docs-build
 
 # I use PyCharm
 .idea
-# *.iml
-# modules.xml
-# .idea/misc.xml
-# *.ipr
+*.iml
+modules.xml
+.idea/misc.xml
+*.ipr
 
 # Distribution packaging
 .Python
