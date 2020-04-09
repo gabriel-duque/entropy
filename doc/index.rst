@@ -16,9 +16,6 @@ Indices and tables
 
 
 
-.. automodule:: entropy
-
-
 entropy's main module
 =====================
 

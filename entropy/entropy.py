@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+.. module:: entropy
+   :platform: Unix, Windows, OSX
+   :synopsis: a return-oriented programming chain searching tool for ELF x86_64 binaries implemented in Python3.
+
+.. moduleauthor:: Gabriel Duque <gabriel.duque@lse.epita.fr>
+"""
 
 import argparse
 import io
@@ -17,7 +24,3 @@ def main() -> None:
     with open(args.elf, "rb") as f:
         byte_stream: BinaryIO = io.BytesIO(f.read())
     print(byte_stream)
-
-
-if __name__ == "__main__":
-    main()
