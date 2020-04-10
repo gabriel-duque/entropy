@@ -2,7 +2,7 @@ import ctypes
 import os
 import sys
 
-from typing import List, Tuple, Type, Union
+from typing import Iterator, List, Tuple, Type, Union
 
 import entropy.log
 
@@ -71,6 +71,13 @@ class Phdr64LSB(ctypes.LittleEndianStructure):
         ("p_align", ctypes.c_uint64),
     ]
 
+    @property
+    def is_executable(self) -> bool:
+        """Check if this segment will be loaded with executable permissions."""
+        PT_LOAD: ctypes.c_uint32 = ctypes.c_uint32(1)
+        PF_X: ctypes.c_uint32 = ctypes.c_uint32(1)
+        return self.p_type == PT_LOAD.value and (self.p_flags & PF_X.value)
+
 
 class ELF:
     """Simple representation of an ELF file."""
@@ -126,13 +133,32 @@ class ELF:
                 "raw buffer was not large enough to carry all ELF program headers"
             )
 
+    def __iter__(self) -> Iterator[Phdr64LSB]:
+        """Iterate over all program headers.
+
+        :return: an iterator over segment program headers
+        :rtype: Iterator[Phdr64LSB]
+        """
+        return (phdr for phdr in self.phdr_list)
+
+    def iter_executable_segments(self) -> Iterator[Phdr64LSB]:
+        """Iterate over executable segment program headers only.
+
+        A segment will be considered as executable if it's type is
+        ``PT_LOAD`` and it will be loaded with the ``PF_X`` ``p_flag``.
+
+        :return: an iterator over executable segment program headers
+        :rtype: Iterator[Phdr64LSB]
+        """
+        return (phdr for phdr in self if phdr.is_executable)
+
     @classmethod
     def from_file_name(cls: type, file_name: str):
         """Create an ELF object from a file name.
 
         :param cls: class of which we want to return an instance (ELF here)
         :type cls: type
-        :param file_name: path of the file we wish to create and ELF object from
+        :param file_name: file we wish to create and ELF object from
         :type file_name: str
         """
         try:
