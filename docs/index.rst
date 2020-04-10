@@ -15,7 +15,7 @@ Indices and tables
 entropy's main module
 =====================
 
-.. automodule:: entropy.entropy
+.. automodule:: entropy.main
    :members:
 
 Logging functions
