@@ -1,10 +1,12 @@
+"""Simple representation of the executable and linkable format (ELF)."""
+
 import ctypes
 import os
 import sys
 
 from typing import Iterator, List, Tuple, Type, Union
 
-import entropy.log
+from entropy import log
 
 
 class EhdrIdentIndex:
@@ -82,7 +84,7 @@ class Phdr64LSB(ctypes.LittleEndianStructure):
 class ELF:
     """Simple representation of an ELF file."""
 
-    __raw: bytearray
+    _raw: bytearray
     ehdr: Ehdr64LSB
     phdr_list: List[Phdr64LSB]
 
@@ -92,11 +94,11 @@ class ELF:
         :param raw: raw bytes of the ELF file
         :type raw: bytes
         """
-        self.__raw = bytearray(raw)
+        self._raw = bytearray(raw)
         try:
-            self.ehdr = Ehdr64LSB.from_buffer(self.__raw)
+            self.ehdr = Ehdr64LSB.from_buffer(self._raw)
         except ValueError as e:
-            entropy.log.die(
+            log.die(
                 "raw buffer was not large enough to carry a valid ELF header"
             )
 
@@ -104,7 +106,7 @@ class ELF:
             self.ehdr.e_ident[EhdrIdentIndex.EI_CLASS]
             != EhdrIdentValue.ELFCLASS64
         ):
-            entropy.log.die(
+            log.die(
                 f"unsupported ELF class: {self.ehdr.e_ident[EhdrIdentIndex.EI_CLASS]}"
             )
 
@@ -112,24 +114,22 @@ class ELF:
             self.ehdr.e_ident[EhdrIdentIndex.EI_DATA]
             != EhdrIdentValue.ELFDATA2LSB
         ):
-            entropy.log.die(
+            log.die(
                 f"unsupported ELF data encoding: {self.ehdr.e_ident[EhdrIdentIndex.EI_DATA]}"
             )
 
         if self.ehdr.e_machine != EhdrIdentValue.EM_X86_64:
-            entropy.log.die(
-                f"unsupported machine architecture: {self.ehdr.e_machine}"
-            )
+            log.die(f"unsupported machine architecture: {self.ehdr.e_machine}")
 
         try:
             self.phdr_list = list(
                 Phdr64LSB.from_buffer(
-                    self.__raw, self.ehdr.e_phoff + i * self.ehdr.e_phentsize
+                    self._raw, self.ehdr.e_phoff + i * self.ehdr.e_phentsize
                 )
                 for i in range(self.ehdr.e_phnum)
             )
         except ValueError as e:
-            entropy.log.die(
+            log.die(
                 "raw buffer was not large enough to carry all ELF program headers"
             )
 
