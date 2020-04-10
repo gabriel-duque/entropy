@@ -75,7 +75,7 @@ class Phdr64LSB(ctypes.LittleEndianStructure):
 class ELF:
     """Simple representation of an ELF file."""
 
-    __raw: bytes
+    __raw: bytearray
     ehdr: Ehdr64LSB
     phdr_list: List[Phdr64LSB]
 
