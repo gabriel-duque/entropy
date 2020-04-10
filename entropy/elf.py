@@ -165,4 +165,8 @@ class ELF:
             with open(file_name, "rb") as f:
                 return cls(f.read())
         except OSError as e:
-            entropy.log.die(f"{os.path.basename(sys.argv[0])}: {e.strerror}")
+            log.die(f"{os.path.basename(sys.argv[0])}: {e.strerror}")
+
+    @property
+    def raw(self):
+        return self._raw
