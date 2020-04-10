@@ -28,9 +28,9 @@ class Finder:
         :type raw: bytearray
         """
         self.__raw: bytearray = raw
-        self.__arch: type = capstone.CS_ARCH_X86
-        self.__mode: type = capstone.CS_MODE_64
-        self.__md: type = capstone.Cs(self.__arch, self.__mode)
+        self.__arch: int = capstone.CS_ARCH_X86
+        self.__mode: int = capstone.CS_MODE_64
+        self.__md = capstone.Cs(self.__arch, self.__mode)
         self.__gadget_stems = (
             self.__rop_stems() + self.__jop_stems() + self.__syscall_stems()
         )
@@ -192,3 +192,4 @@ class Finder:
                     )
                     for _, _, mnemonic, _ in disassembled:
                         pass
+        return gadgets
