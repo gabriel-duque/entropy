@@ -4,14 +4,14 @@ import sys
 
 
 def info(msg: str) -> None:
-    """Log a message to stderr.
+    """Log a message to stdout.
 
     :param msg: message to print
     :type msg: str
     """
     green: str = "[\033[0;32m"
     reset: str = "\033[0m]"
-    print(f"{green}*{reset} {msg}", file=sys.stderr)
+    print(f"{green}*{reset} {msg}")
 
 
 def warn(msg: str) -> None:
