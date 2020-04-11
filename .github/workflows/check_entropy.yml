@@ -17,9 +17,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install package and requirements
-        run: python -m pip install -e .[dev,doc]
-      - name: Build documentation
-        run: python setup.py build_sphinx
+        run: python -m pip install -e .[dev]
       - name: Run mypy
         run: mypy --ignore-missing-imports entropy
       - name: Run black

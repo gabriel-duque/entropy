@@ -1,0 +1,30 @@
+name: entropy doc
+
+on: push
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+      - name: Install package and requirements
+        run: python -m pip install -e .[doc]
+      - name: Build documentation
+        run: python setup.py build_sphinx
+      - name: Deploy
+        if: success()
+        uses: crazy-max/ghaction-github-pages@v1
+        with:
+          committer_name: entropy
+          committer_email: entropy@zuh0.com
+          committer_message: "gh-pages: automatic documentation update"
+          target_branch: gh-pages
+          build_dir: docs/docs-build/html
+          keep_history: true
+        env:
+          GITHUB_PAT: ${{ secrets.DOCUMENTATION_DEPLOY }}
