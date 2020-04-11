@@ -4,7 +4,7 @@ import ctypes
 import os
 import sys
 
-from typing import Iterator, List, Tuple, Type, Union
+from typing import Generator, List, Tuple, Type, Union
 
 from entropy import log
 
@@ -84,7 +84,7 @@ class Phdr64LSB(ctypes.LittleEndianStructure):
 class ELF:
     """Simple representation of an ELF file."""
 
-    _raw: bytearray
+    raw: bytes
     ehdr: Ehdr64LSB
     phdr_list: List[Phdr64LSB]
 
@@ -94,9 +94,9 @@ class ELF:
         :param raw: raw bytes of the ELF file
         :type raw: bytes
         """
-        self._raw = bytearray(raw)
+        self.raw = bytes(raw)
         try:
-            self.ehdr = Ehdr64LSB.from_buffer(self._raw)
+            self.ehdr = Ehdr64LSB.from_buffer_copy(self.raw)
         except ValueError as e:
             log.die(
                 "raw buffer was not large enough to carry a valid ELF header"
@@ -123,8 +123,8 @@ class ELF:
 
         try:
             self.phdr_list = list(
-                Phdr64LSB.from_buffer(
-                    self._raw, self.ehdr.e_phoff + i * self.ehdr.e_phentsize
+                Phdr64LSB.from_buffer_copy(
+                    self.raw, self.ehdr.e_phoff + i * self.ehdr.e_phentsize
                 )
                 for i in range(self.ehdr.e_phnum)
             )
@@ -133,24 +133,16 @@ class ELF:
                 "raw buffer was not large enough to carry all ELF program headers"
             )
 
-    def __iter__(self) -> Iterator[Phdr64LSB]:
-        """Iterate over all program headers.
-
-        :return: an iterator over segment program headers
-        :rtype: Iterator[Phdr64LSB]
-        """
-        return (phdr for phdr in self.phdr_list)
-
-    def iter_executable_segments(self) -> Iterator[Phdr64LSB]:
-        """Iterate over executable segment program headers only.
+    def gen_executable_segments(self) -> Generator[Phdr64LSB, None, None]:
+        """Return a generator iterating over executable segment program headers only.
 
         A segment will be considered as executable if it's type is
         ``PT_LOAD`` and it will be loaded with the ``PF_X`` ``p_flag``.
 
-        :return: an iterator over executable segment program headers
-        :rtype: Iterator[Phdr64LSB]
+        :return: a generator iterating over executable segment program headers
+        :rtype: Generator[Phdr64LSB, None, None]
         """
-        return (phdr for phdr in self if phdr.is_executable)
+        return (phdr for phdr in self.phdr_list if phdr.is_executable)
 
     @classmethod
     def from_file_name(cls: type, file_name: str):
@@ -166,7 +158,3 @@ class ELF:
                 return cls(f.read())
         except OSError as e:
             log.die(f"{os.path.basename(sys.argv[0])}: {e.strerror}")
-
-    @property
-    def raw(self):
-        return self._raw

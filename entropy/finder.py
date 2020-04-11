@@ -4,7 +4,7 @@ import functools
 import operator
 import re
 
-from typing import Iterator, List, Tuple
+from typing import Generator, List, Tuple
 
 import capstone
 
@@ -15,22 +15,22 @@ from entropy import gadget
 class Finder:
     """Actual return-oriented programming gadget searching class."""
 
-    __raw: bytearray
-    __arch: type
-    __mode: type
-    __md: type
+    __raw: bytes
+    __arch: int
+    __mode: int
+    __md: capstone.Cs
     __gadget_stems: List[Tuple[bytes, int]]
 
-    def __init__(self, raw: bytearray) -> None:
+    def __init__(self, raw: bytes) -> None:
         """Initialize our finder with the raw bytes of our file.
 
         :param raw: raw input file bytes
-        :type raw: bytearray
+        :type raw: bytes
         """
-        self.__raw: bytearray = raw
+        self.__raw: bytes = raw
         self.__arch: int = capstone.CS_ARCH_X86
         self.__mode: int = capstone.CS_MODE_64
-        self.__md = capstone.Cs(self.__arch, self.__mode)
+        self.__md: capstone.Cs = capstone.Cs(self.__arch, self.__mode)
         self.__gadget_stems = (
             self.__rop_stems() + self.__jop_stems() + self.__syscall_stems()
         )
@@ -148,13 +148,13 @@ class Finder:
             return list()
 
     def __call__(
-        self, executable_segments: Iterator[elf.Phdr64LSB]
+        self, executable_segments: Generator[elf.Phdr64LSB, None, None]
     ) -> List[gadget.Gadget]:
         """Search for gadgets in our segments and concatenate all
         returned lists.
 
-        :param executable_segments: iterator over executable segment program headers
-        :type executable_segments: Iterator[elf.Phdr64LSB]
+        :param executable_segments: generator iterating over executable segment program headers
+        :type executable_segments: Generator[elf.Phdr64LSB, None, None]
         :return: list of found gadgets
         :rtype: List[gadget.Gadget]
         """
@@ -184,12 +184,10 @@ class Finder:
                 end: int = match.start() + stem_size
                 for i in range(DEFAULT_DEPTH):
                     start: int = match.start() - i
-                    opcodes: bytes = bytes(
-                        self.__raw[segment.p_offset :][start:end]
-                    )
+                    opcodes: bytes = self.__raw[segment.p_offset :][start:end]
                     disassembled = self.__md.disasm_lite(
                         opcodes, segment.p_vaddr + match.start()
                     )
                     for _, _, mnemonic, _ in disassembled:
-                        pass
+                        print(mnemonic)
         return gadgets

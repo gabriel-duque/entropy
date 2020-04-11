@@ -28,9 +28,9 @@ def main() -> None:
     input_elf: elf.ELF = elf.ELF.from_file_name(args.elf)
     gadget_finder: finder.Finder = finder.Finder(input_elf.raw)
     log.info(
-        f"searching for gadgets in {len(list(input_elf.iter_executable_segments()))} segment(s)"
+        f"searching for gadgets in {len(list(input_elf.gen_executable_segments()))} segment(s)"
     )
     gadgets: List[gadget.Gadget] = gadget_finder(
-        input_elf.iter_executable_segments()
+        input_elf.gen_executable_segments()
     )
     log.info(f"found {len(gadgets)} gadgets")
