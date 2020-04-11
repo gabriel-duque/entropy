@@ -22,7 +22,7 @@ jobs:
         with:
           committer_name: entropy
           committer_email: entropy@zuh0.com
-          committer_message: "gh-pages: automatic documentation update"
+          commit_message: "gh-pages: automatic documentation update"
           target_branch: gh-pages
           build_dir: docs/docs-build/html
           keep_history: true
