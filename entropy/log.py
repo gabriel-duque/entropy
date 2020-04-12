@@ -2,6 +2,8 @@
 
 import sys
 
+from typing import NoReturn
+
 
 def info(msg: str) -> None:
     """Log a message to stdout.
@@ -25,7 +27,7 @@ def warn(msg: str) -> None:
     print(f"{yellow}*{reset} {msg}", file=sys.stderr)
 
 
-def die(msg: str, error_code: int = 1) -> None:
+def die(msg: str, error_code: int = 1) -> NoReturn:
     """Log an error to stderr and exit.
 
     :param msg: message to print
