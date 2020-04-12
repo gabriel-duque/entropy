@@ -1,15 +1,15 @@
 """Actual implementation of the return-oriented programming chain searching."""
 
-import functools
-import operator
+import itertools
 import re
 
-from typing import Generator, List, Tuple
+from typing import Generator, Iterator, List, Tuple
 
 import capstone
 
 from entropy import elf
 from entropy import gadget
+from entropy import log
 
 
 class Finder:
@@ -19,7 +19,7 @@ class Finder:
     __arch: int
     __mode: int
     __md: capstone.Cs
-    __gadget_stems: List[Tuple[bytes, int]]
+    __gadget_stems: Iterator[Tuple[bytes, int]]
 
     def __init__(self, raw: bytes) -> None:
         """Initialize our finder with the raw bytes of our file.
@@ -31,32 +31,36 @@ class Finder:
         self.__arch: int = capstone.CS_ARCH_X86
         self.__mode: int = capstone.CS_MODE_64
         self.__md: capstone.Cs = capstone.Cs(self.__arch, self.__mode)
-        self.__gadget_stems = (
-            self.__rop_stems() + self.__jop_stems() + self.__syscall_stems()
+        self.__gadget_stems = itertools.chain(
+            self.__rop_stems(), self.__jop_stems(), self.__syscall_stems()
         )
 
-    def __rop_stems(self) -> List[Tuple[bytes, int]]:
-        if (
+    def __rop_stems(self) -> Iterator[Tuple[bytes, int]]:
+        if not (
             self.__arch == capstone.CS_ARCH_X86
             and self.__mode == capstone.CS_MODE_64
         ):
-            return [
-                (b"\xc3", 1),  # ret
-                (b"\xc2[\x00-\xff]{2}", 3),  # ret <imm>
-                (b"\xcb", 1),  # retf
-                (b"\xca[\x00-\xff]{2}", 3),  # retf <imm>
-                # MPX
-                (b"\xf2\xc3", 2),  # ret
-                (b"\xf2\xc2[\x00-\xff]{2}", 4),  # ret <imm>
-            ]
+            log.die("unsupported architecture or mode")
         else:
-            return list()
+            return iter(
+                [
+                    (b"\xc3", 1),  # ret
+                    (b"\xc2[\x00-\xff]{2}", 3),  # ret <imm>
+                    (b"\xcb", 1),  # retf
+                    (b"\xca[\x00-\xff]{2}", 3),  # retf <imm>
+                    # MPX
+                    (b"\xf2\xc3", 2),  # ret
+                    (b"\xf2\xc2[\x00-\xff]{2}", 4),  # ret <imm>
+                ]
+            )
 
-    def __jop_stems(self) -> List[Tuple[bytes, int]]:
-        if (
+    def __jop_stems(self) -> Iterator[Tuple[bytes, int]]:
+        if not (
             self.__arch == capstone.CS_ARCH_X86
             and self.__mode == capstone.CS_MODE_64
         ):
+            log.die("unsupported architecture or mode")
+        else:
             gadgets: List[Tuple[bytes, int]] = [
                 # Jump gadget stems
                 # call/jmp reg
@@ -122,58 +126,63 @@ class Finder:
                     ),  # call [reg]
                 ]
             )
-            return gadgets
-        else:
-            return list()
+            return iter(gadgets)
 
-    def __syscall_stems(self) -> List[Tuple[bytes, int]]:
-        if (
+    def __syscall_stems(self) -> Iterator[Tuple[bytes, int]]:
+        if not (
             self.__arch == capstone.CS_ARCH_X86
             and self.__mode == capstone.CS_MODE_64
         ):
-            return [
-                (b"\xcd\x80", 2),  # int 0x80
-                (b"\x0f\x34", 2),  # sysenter
-                (b"\x0f\x05", 2),  # syscall
-                (b"\xcd\x80\xc3", 3),  # int 0x80 ; ret
-                (b"\x0f\x34\xc3", 3),  # sysenter ; ret
-                (b"\x0f\x05\xc3", 3),  # syscall ; ret
-                (b"\x65\xff\x15\x10\x00\x00\x00", 7),  # call DWORD PTR gs:0x10
-                (
-                    b"\x65\xff\x15\x10\x00\x00\x00\xc3",
-                    8,
-                ),  # call DWORD PTR gs:0x10 ; ret
-            ]
+            log.die("unsupported architecture or mode")
         else:
-            return list()
+            return iter(
+                [
+                    (b"\xcd\x80", 2),  # int 0x80
+                    (b"\x0f\x34", 2),  # sysenter
+                    (b"\x0f\x05", 2),  # syscall
+                    (b"\xcd\x80\xc3", 3),  # int 0x80 ; ret
+                    (b"\x0f\x34\xc3", 3),  # sysenter ; ret
+                    (b"\x0f\x05\xc3", 3),  # syscall ; ret
+                    (
+                        b"\x65\xff\x15\x10\x00\x00\x00",
+                        7,
+                    ),  # call DWORD PTR gs:0x10
+                    (
+                        b"\x65\xff\x15\x10\x00\x00\x00\xc3",
+                        8,
+                    ),  # call DWORD PTR gs:0x10 ; ret
+                ]
+            )
 
     def __call__(
         self, executable_segments: Generator[elf.Phdr64LSB, None, None]
-    ) -> List[gadget.Gadget]:
+    ) -> Iterator[gadget.Gadget]:
         """Search for gadgets in our segments and concatenate all
         returned lists.
 
         :param executable_segments: generator iterating over executable segment program headers
         :type executable_segments: Generator[elf.Phdr64LSB, None, None]
-        :return: list of found gadgets
-        :rtype: List[gadget.Gadget]
+        :return: iterator over found gadgets
+        :rtype: Iterator[gadget.Gadget]
         """
-        return functools.reduce(
-            operator.add, map(self.__find_gadgets, executable_segments)
+
+        return itertools.chain(
+            *(self.__find_gadgets(segment) for segment in executable_segments)
         )
 
-    def __find_gadgets(self, segment: elf.Phdr64LSB) -> List[gadget.Gadget]:
+    def __find_gadgets(
+        self, segment: elf.Phdr64LSB
+    ) -> Generator[gadget.Gadget, None, None]:
         """Search for gadgets in a specific segment.
 
         :param segment: program header of the analyzed segment
         :type segment: elf.Phdr64LSB
-        :return: list of gadgets found in segment
-        :rtype: List[gadget.Gadget]
+        :return: generator over gadgets found in segment
+        :rtype: Generator[gadget.Gadget, None, None]
         """
 
         DEFAULT_DEPTH: int = 10
 
-        gadgets: List[gadget.Gadget] = list()
         for stem_bytes, stem_size in self.__gadget_stems:
             for match in re.finditer(
                 stem_bytes,
@@ -189,5 +198,4 @@ class Finder:
                         opcodes, segment.p_vaddr + match.start()
                     )
                     for _, _, mnemonic, _ in disassembled:
-                        print(mnemonic)
-        return gadgets
+                        yield gadget.Gadget()

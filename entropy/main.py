@@ -9,7 +9,7 @@
 
 import argparse
 
-from typing import List
+from typing import Iterator
 
 from entropy import elf
 from entropy import finder
@@ -30,7 +30,7 @@ def main() -> None:
     log.info(
         f"searching for gadgets in {len(list(input_elf.gen_executable_segments()))} segment(s)"
     )
-    gadgets: List[gadget.Gadget] = gadget_finder(
+    gadgets: Iterator[gadget.Gadget] = gadget_finder(
         input_elf.gen_executable_segments()
     )
-    log.info(f"found {len(gadgets)} gadgets")
+    log.info(f"found {len(list(gadgets))} gadgets")
