@@ -6,6 +6,9 @@ import re
 from typing import Generator, Iterator, List, Tuple
 
 import capstone
+import capstone.x86_const
+
+capstone.x86_const.X86_REG_ENDING
 
 from entropy import elf
 from entropy import gadget
@@ -181,21 +184,40 @@ class Finder:
         :rtype: Generator[gadget.Gadget, None, None]
         """
 
-        DEFAULT_DEPTH: int = 10
+        # This is arbitrary and stupid
+        MAX_INSTR_SIZE: int = 15
+        gadget_ends: List[str] = [
+            "ret",
+            "retf",
+            "int",
+            "sysenter",
+            "jmp",
+            "call",
+            "syscall",
+        ]
+
+        raw_segment: bytes = self.__raw[
+            segment.p_offset : segment.p_offset + segment.p_filesz
+        ]
 
         for stem_bytes, stem_size in self.__gadget_stems:
-            for match in re.finditer(
-                stem_bytes,
-                self.__raw[
-                    segment.p_offset : segment.p_offset + segment.p_filesz
-                ],
-            ):
+            for match in re.finditer(stem_bytes, raw_segment):
                 end: int = match.start() + stem_size
-                for i in range(DEFAULT_DEPTH):
+                for i in range(MAX_INSTR_SIZE):
                     start: int = match.start() - i
-                    opcodes: bytes = self.__raw[segment.p_offset :][start:end]
-                    disassembled = self.__md.disasm_lite(
-                        opcodes, segment.p_vaddr + match.start()
+                    opcodes: bytes = raw_segment[start:end]
+                    disassembled: List[Tuple[int, int, str, str]] = list(
+                        self.__md.disasm_lite(opcodes, segment.p_vaddr + start)
                     )
-                    for _, _, mnemonic, _ in disassembled:
-                        yield gadget.Gadget()
+                    if (
+                        sum(size for _, size, _, _ in disassembled)
+                        != i + stem_size
+                        or disassembled[-1][2] not in gadget_ends
+                        or any(
+                            (mnemonic in gadget_ends)
+                            for _, _, mnemonic, _ in disassembled[:-1]
+                        )
+                    ):
+                        # We've read less instructions than planned so something went wrong in Capstone
+                        continue
+                    yield gadget.Gadget(disassembled)

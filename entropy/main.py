@@ -33,4 +33,10 @@ def main() -> None:
     gadgets: Iterator[gadget.Gadget] = gadget_finder(
         input_elf.gen_executable_segments()
     )
-    log.info(f"found {len(list(gadgets))} gadgets")
+    g_count: int = 0
+    for g in gadgets:
+        print(
+            f"{hex(g.vaddr)}: {' ; '.join(' '.join(i[2:]) for i in g.instructions).replace('  ', ' ')}"
+        )
+        g_count += 1
+    print(f"Found {g_count} gadgets.")
