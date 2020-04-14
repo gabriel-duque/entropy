@@ -34,6 +34,7 @@ class Finder:
         self.__arch: int = capstone.CS_ARCH_X86
         self.__mode: int = capstone.CS_MODE_64
         self.__md: capstone.Cs = capstone.Cs(self.__arch, self.__mode)
+        self.__md.syntax = capstone.CS_OPT_SYNTAX_ATT
         self.__gadget_stems = itertools.chain(
             self.__rop_stems(), self.__jop_stems(), self.__syscall_stems()
         )
@@ -185,11 +186,13 @@ class Finder:
         """
 
         # This is arbitrary and stupid
-        MAX_INSTR_SIZE: int = 15
+        MAX_INSTR_SIZE: int = 100
         gadget_ends: List[str] = [
             "ret",
             "retf",
-            "int",
+            "int1",
+            "int2",
+            "int3",
             "sysenter",
             "jmp",
             "call",
@@ -212,9 +215,13 @@ class Finder:
                     if (
                         sum(size for _, size, _, _ in disassembled)
                         != i + stem_size
-                        or disassembled[-1][2] not in gadget_ends
+                        or not any(
+                            disassembled[-1][2].startswith(g_end)
+                            for g_end in gadget_ends
+                        )
                         or any(
-                            (mnemonic in gadget_ends)
+                            mnemonic.startswith(g_end)
+                            for g_end in gadget_ends
                             for _, _, mnemonic, _ in disassembled[:-1]
                         )
                     ):

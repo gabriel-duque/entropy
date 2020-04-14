@@ -24,19 +24,12 @@ def main() -> None:
     parser.add_argument("elf")
     args: argparse.Namespace = parser.parse_args()
 
-    log.info(f"parsing file {args.elf}")
     input_elf: elf.ELF = elf.ELF.from_file_name(args.elf)
     gadget_finder: finder.Finder = finder.Finder(input_elf.raw)
-    log.info(
-        f"searching for gadgets in {len(list(input_elf.gen_executable_segments()))} segment(s)"
-    )
     gadgets: Iterator[gadget.Gadget] = gadget_finder(
         input_elf.gen_executable_segments()
     )
-    g_count: int = 0
-    for g in gadgets:
+    for g in sorted(gadgets, key=lambda g: g.vaddr):
         print(
-            f"{hex(g.vaddr)}: {' ; '.join(' '.join(i[2:]) for i in g.instructions).replace('  ', ' ')}"
+            f"{hex(g.vaddr)}: {' ; '.join(' '.join(i[2:]) for i in g.instructions).replace('  ', ' ').rstrip()}"
         )
-        g_count += 1
-    print(f"Found {g_count} gadgets.")
