@@ -183,12 +183,18 @@
 <p>Representation of a return-oriented programming gadget.</p>
 <dl class="py class">
 <dt id="entropy.gadget.Gadget">
-<em class="property">class </em><code class="sig-prename descclassname">entropy.gadget.</code><code class="sig-name descname">Gadget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">capstone_insn</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>str<span class="p">, </span>str<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#entropy.gadget.Gadget" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">entropy.gadget.</code><code class="sig-name descname">Gadget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vaddr</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">instructions</span><span class="p">:</span> <span class="n">Generator[capstone.CsInsn, None, None]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#entropy.gadget.Gadget" title="Permalink to this definition">¶</a></dt>
 <dd><p>Representation of a return-oriented programming gadget.</p>
 <dl class="py method">
 <dt id="entropy.gadget.Gadget.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">capstone_insn</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Tuple<span class="p">[</span>int<span class="p">, </span>int<span class="p">, </span>str<span class="p">, </span>str<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#entropy.gadget.Gadget.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vaddr</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">instructions</span><span class="p">:</span> <span class="n">Generator[capstone.CsInsn, None, None]</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#entropy.gadget.Gadget.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize our gadget representation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="entropy.gadget.Gadget.__str__">
+<code class="sig-name descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#entropy.gadget.Gadget.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return str(self).</p>
 </dd></dl>
 
 </dd></dl>
