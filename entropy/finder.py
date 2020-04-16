@@ -45,7 +45,7 @@ class Finder:
         """
 
         return itertools.chain(
-            *(self.__find_gadgets(segment) for segment in executable_segments)
+            *(self.find_gadgets(segment) for segment in executable_segments)
         )
 
     @staticmethod
@@ -54,7 +54,7 @@ class Finder:
     ) -> Generator[gadget.Gadget, None, None]:
         yield gadget.Gadget()
 
-    def __find_gadgets(
+    def find_gadgets(
         self, segment: elf.Phdr64LSB
     ) -> Generator[gadget.Gadget, None, None]:
         """Search for gadgets in a specific segment.
