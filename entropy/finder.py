@@ -69,9 +69,9 @@ class Finder:
         groups. If any of these conditions are verified, we consider this
         instruction to be a valid gadget ending:
 
-        * is in the CS_GRP_RET capstone group
-        * is in the CS_GRP_JMP capstone group and operand is a register
-        * is in the CS_GRP_CALL capstone group and operand is a register
+        * is in the ``CS_GRP_RET`` ``capstone`` group
+        * is in the ``CS_GRP_JMP`` ``capstone`` group and operand is a register
+        * is in the ``CS_GRP_CALL`` ``capstone`` group and operand is a register
 
         :param segment: program header of the analyzed segment
         :type segment: elf.Phdr64LSB
