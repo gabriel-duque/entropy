@@ -38,7 +38,7 @@ Gadgets
 .. automodule:: entropy.gadget
    :special-members:
    :members:
-   :exclude-members: __dict__, __weakref__
+   :exclude-members: __dict__, __weakref__, __str__
 
 Finder
 ======
