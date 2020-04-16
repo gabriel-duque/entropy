@@ -29,7 +29,5 @@ def main() -> None:
     gadgets: Iterator[gadget.Gadget] = gadget_finder(
         input_elf.gen_executable_segments()
     )
-    for g in sorted(gadgets, key=lambda g: g.vaddr):
-        print(
-            f"{hex(g.vaddr)}: {' ; '.join(' '.join(i[2:]) for i in g.instructions).replace('  ', ' ').rstrip()}"
-        )
+    for g in gadgets:
+        print(g)
