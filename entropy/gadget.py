@@ -11,13 +11,11 @@ class Gadget:
     vaddr: int
     instructions: List[capstone.CsInsn]
 
-    def __init__(
-        self, vaddr: int, instructions: Generator[capstone.CsInsn, None, None]
-    ) -> None:
+    def __init__(self) -> None:
         """Initialize our gadget representation."""
 
-        self.vaddr = vaddr
-        self.instructions = [instructions]
+        self.vaddr = 0xDEADBEEF
+        self.instructions = list()
 
     def __str__(self):
         def instruction_to_str(instruction: capstone.CsInsn):
@@ -26,4 +24,4 @@ class Gadget:
                 instruction_str += f" {instruction.op_str}"
             return instruction_str
 
-        return f"{self.vaddr}: {' ; '.join(instruction_to_str(instruction) for instruction in self.instructions)}"
+        return f"{hex(self.vaddr)}: {' ; '.join(instruction_to_str(instruction) for instruction in self.instructions)}"

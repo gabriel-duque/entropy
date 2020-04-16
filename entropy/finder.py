@@ -48,15 +48,30 @@ class Finder:
             *(self.__find_gadgets(segment) for segment in executable_segments)
         )
 
+    @staticmethod
     def __generate_gadgets(
-        self, vaddr: int, instruction: capstone.CsInsn
+        raw_segment: bytes, offset: int, vaddr: int
     ) -> Generator[gadget.Gadget, None, None]:
-        yield gadget.Gadget(vaddr, instruction)
+        yield gadget.Gadget()
 
     def __find_gadgets(
         self, segment: elf.Phdr64LSB
     ) -> Generator[gadget.Gadget, None, None]:
         """Search for gadgets in a specific segment.
+
+        What we do is iterate over the whole segment byte by byte and
+        disassemble *one* instruction each time. If the instruction could
+        be the end of a gadget, we spread backwards from there and
+        ``yield`` each valid gadget.
+
+        In order to determine if an instruction could be the stem for a
+        gadget list, we check it's ``capstone`` semantic instruction
+        groups. If any of these conditions are verified, we consider this
+        instruction to be a valid gadget ending:
+
+        * is in the CS_GRP_RET capstone group
+        * is in the CS_GRP_JMP capstone group and operand is a register
+        * is in the CS_GRP_CALL capstone group and operand is a register
 
         :param segment: program header of the analyzed segment
         :type segment: elf.Phdr64LSB
@@ -73,13 +88,12 @@ class Finder:
 
         current: int
         for current in range(segment.p_filesz):
-            offset: int = segment.p_offset + current
             vaddr: int = segment.p_vaddr + current
 
             try:
                 instruction: capstone.CsInsn = next(
                     self.__md.disasm(
-                        raw_segment[offset : offset + MAX_INSTRUCTION_SIZE],
+                        raw_segment[current : current + MAX_INSTRUCTION_SIZE],
                         vaddr,
                         1,  # Only disassemble *one* instruction
                     )
@@ -97,7 +111,7 @@ class Finder:
                     for operand in instruction.operands
                 )
             ):
-                for current_gadget in self.__generate_gadgets(
-                    vaddr, instruction
+                for current_gadget in Finder.__generate_gadgets(
+                    raw_segment, current, vaddr
                 ):
                     yield current_gadget
