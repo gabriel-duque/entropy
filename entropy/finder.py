@@ -70,6 +70,7 @@ class Finder:
             capstone.x86_const.X86_GRP_RET,
             capstone.x86_const.X86_GRP_JUMP,
             capstone.x86_const.X86_GRP_CALL,
+            capstone.x86_const.X86_GRP_INT,
         ]
 
         while bad_address_count != MAX_INSTRUCTION_SIZE:
