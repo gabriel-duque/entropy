@@ -22,9 +22,9 @@ class Gadget:
         self.instructions = instructions
 
     def __str__(self):
-        """Get string representation of a gadget.
+        """Get a human-readable string representation of a gadget.
 
-        :return: string representation of a gadget
+        :return: human-readable string representation of a gadget
         :rtype: str
         """
 
@@ -35,6 +35,24 @@ class Gadget:
             return instruction_str
 
         return f"{hex(self.vaddr)}:\n\t" + "\n\t".join(
+            instruction_to_str(instruction)
+            for instruction in self.instructions
+        )
+
+    def __repr__(self):
+        """Get a machine-readable string representation of a gadget.
+
+        :return: machine-readable string representation of a gadget
+        :rtype: str
+        """
+
+        def instruction_to_str(instruction: capstone.CsInsn):
+            instruction_str: str = instruction.mnemonic
+            if instruction.op_str is not None:
+                instruction_str += f" {instruction.op_str}"
+            return instruction_str
+
+        return f"{hex(self.vaddr)}: " + " ; ".join(
             instruction_to_str(instruction)
             for instruction in self.instructions
         )
