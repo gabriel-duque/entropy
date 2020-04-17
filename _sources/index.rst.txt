@@ -38,12 +38,13 @@ Gadgets
 .. automodule:: entropy.gadget
    :special-members:
    :members:
-   :exclude-members: __dict__, __weakref__, __str__
+   :exclude-members: __dict__, __weakref__
 
 Finder
 ======
 
 .. automodule:: entropy.finder
    :special-members:
+   :private-members:
    :members:
    :exclude-members: __dict__, __weakref__
