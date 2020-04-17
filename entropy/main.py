@@ -29,5 +29,8 @@ def main() -> None:
     gadgets: Iterator[gadget.Gadget] = gadget_finder(
         input_elf.gen_executable_segments()
     )
+    count: int = 0
     for g in gadgets:
         print(g)
+        count += 1
+    log.info(f"Found {count} gadgets.")

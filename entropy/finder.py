@@ -2,7 +2,7 @@
 
 import itertools
 
-from typing import Generator, Iterator
+from typing import Generator, Iterator, List
 
 import capstone
 import capstone.x86_const
@@ -48,11 +48,52 @@ class Finder:
             *(self.find_gadgets(segment) for segment in executable_segments)
         )
 
-    @staticmethod
     def __generate_gadgets(
-        raw_segment: bytes, offset: int, vaddr: int
+        self, raw_segment: bytes, offset: int, vaddr: int, stem_size: int
     ) -> Generator[gadget.Gadget, None, None]:
-        yield gadget.Gadget()
+        """Generate gadgets from a stem.
+
+        :param raw_segment: raw bytes of the current segment
+        :type raw_segment: bytes
+        :param offset: offset of the stem in the current segment
+        :type offset: int
+        :param vaddr: virtual address of the stem in the current segment
+        :type vaddr: int
+        :return: generator over gadgets found starting at this stem
+        :rtype: Generator[gadget.Gadget, None, None]
+        """
+        MAX_INSTRUCTION_SIZE: int = 15
+        bad_address_count: int = 0
+        end_offset: int = offset + stem_size
+        end_vaddr: int = vaddr
+        stem_groups: List[int] = [
+            capstone.x86_const.X86_GRP_RET,
+            capstone.x86_const.X86_GRP_JUMP,
+            capstone.x86_const.X86_GRP_CALL,
+        ]
+
+        while bad_address_count != MAX_INSTRUCTION_SIZE:
+            instructions: List[capstone.CsInsn] = list(
+                self.__md.disasm(raw_segment[offset:end_offset], vaddr)
+            )
+
+            if (
+                sum(instruction.size for instruction in instructions)
+                != end_offset - offset
+                or instructions[-1].address != end_vaddr
+                or any(
+                    instruction_group in instruction.groups
+                    for instruction_group in stem_groups
+                    for instruction in instructions[:-1]
+                )
+            ):
+                bad_address_count += 1
+            else:
+                bad_address_count = 0
+                yield gadget.Gadget(instructions)
+
+            offset -= 1
+            vaddr -= 1
 
     def find_gadgets(
         self, segment: elf.Phdr64LSB
@@ -111,7 +152,7 @@ class Finder:
                     for operand in instruction.operands
                 )
             ):
-                for current_gadget in Finder.__generate_gadgets(
-                    raw_segment, current, vaddr
+                for current_gadget in self.__generate_gadgets(
+                    raw_segment, current, vaddr, instruction.size
                 ):
                     yield current_gadget
